@@ -1,0 +1,71 @@
+apiVersion: v1  
+kind: Namespace  
+metadata:  
+    name: #namespace#  
+    labels:  
+      name: #namespace#  
+---
+apiVersion: v1
+data:
+  .dockerconfigjson: eyJhdXRocyI6eyIxOTIuMTY4LjAuMToyMzI4MCI6eyJ1c2VybmFtZSI6ImhleWdlYXJzIiwicGFzc3dvcmQiOiJPbW5pMjAxNEVhcnMiLCJlbWFpbCI6Iml0QGhleWdlYXJzLmNvbSIsImF1dGgiOiJhR1Y1WjJWaGNuTTZUMjF1YVRJd01UUkZZWEp6In19fQ==
+kind: Secret
+metadata:
+  name: regcred
+  namespace: #namespace#  
+type: kubernetes.io/dockerconfigjson
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: #app#-deploy
+  namespace: #namespace# 
+  labels:
+    app: #app#-deploy
+spec:
+  replicas: #replicas#
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: #app#
+    spec:
+      containers:
+      - image:  #image#  
+        name: #app#
+        ports:
+        - containerPort: 80
+          name: #app#
+      imagePullSecrets:
+      - name: regcred
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: #app#-service
+  namespace: #namespace# 
+  labels:
+    app: #app#-service
+spec:
+  ports:
+    - port: 80
+      targetPort: #port#    
+  selector:
+    app: #app#
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: #app#-ingress
+  namespace: #namespace#  
+  annotations:
+      nginx.ingress.kubernetes.io/proxy-body-size: "0"
+spec:
+  rules:
+  - host: #host#  
+    http:
+      paths:
+      - path: #urlPath#
+        backend:
+          serviceName: #app#-service
+          servicePort: 80
